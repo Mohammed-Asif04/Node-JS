@@ -71,7 +71,7 @@ app.post('/api/users', (req , res)=>{
     const body = req.body;
     users.push({id: users.length + 1 ,...body });
     fs.writeFileSync('./MOCK_DATA.json', JSON.stringify(users) , (err,data)=>{
-     return res.json({status: 'Success' , id: users.length + 1});
+     return res.status(201).json({status: 'Success' , id: users.length + 1});
     });
    
 })
