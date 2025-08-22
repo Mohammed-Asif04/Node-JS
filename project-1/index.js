@@ -4,8 +4,25 @@ const fs = require('fs');
 const app = express();
 const port = 8000;
 
-//Middleware
+//Middleware-Plugins
 app.use(express.urlencoded({extended: false}));
+
+app.use((req , res , next)=>{
+    fs.appendFile('log.txt', `${Date.now()}: ${req.method}: ${req.path}\n` , (err , data)=>{
+        next();
+    });
+});
+// app.use((req , res , next)=>{
+//     console.log('Hello from middleware 1');
+//     next();  
+// })
+
+// app.use((req , res , next)=>{
+//     console.log('Hello from middleware 2');
+//     //db query
+//     // credit card info
+//     next();  
+// })
 
 //Routes
 app.get('/users', (req , res)=>{
