@@ -1,7 +1,5 @@
 const { nanoid } = require('nanoid');
 const URL = require('../model/url');
-const e = require('express');
-
 
 async function handleGenerateNewShortURL(req ,res){
     const body = req.body;
@@ -40,7 +38,6 @@ async function handleGetAnalytics(req ,res){
     });
     res.json({totalClicks: result.visitHistory.length , visitHistory: result.visitHistory});
 }
-
 module.exports={
     handleGenerateNewShortURL,
     handleGetShortURL,

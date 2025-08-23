@@ -1,5 +1,6 @@
 const express = require('express');
 const urlRoute = require('./routes/url');
+const path = require('path');
 const { connectDB } = require('./connection');
 
 const app = express();
@@ -13,8 +14,16 @@ connectDB("mongodb://127.0.0.1:27017/short-url")
     console.log("Not connected to DB" , err);
 });
 
+app.set('view engine', 'ejs');
+app.set('views', path.resolve('./views'));
+
 app.use(express.json());
 app.use("/url", urlRoute);
+
+app.get('/test',async (req,res)=>{
+    const allUrls = await URL.find({});
+    return res.render('home');
+})
 
 
 app.listen(port, () => {
