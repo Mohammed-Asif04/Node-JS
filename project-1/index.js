@@ -1,8 +1,44 @@
 const express = require('express');
-const users = require("./MOCK_DATA.json");
 const fs = require('fs');
 const app = express();
+const mongoose = require('mongoose');
 const port = 8000;
+
+//Connect to MongoDB
+mongoose
+.connect('mongodb://127.0.0.1:27017/Learning-NodeJS')
+.then(()=>{
+    console.log('MongoDB Connected');
+})
+.catch((err)=>{
+    console.log('MongoDB Connection Error' , err);
+});
+
+//Schema
+const userSchema = new mongoose.Schema({
+    first_name:{
+        type: String,
+        required: true
+    },
+    last_name:{
+        type: String,
+    },
+    email:{
+        type: String,
+        required: true,
+        unique: true
+    },
+    job_title:{
+        type: String,
+    },
+    gender:{
+        type: String,
+    }
+},
+{timestamps: true}
+);
+
+const User = mongoose.model('User' , userSchema);
 
 //Middleware-Plugins
 app.use(express.urlencoded({extended: false}));
@@ -25,20 +61,23 @@ app.use((req , res , next)=>{
 // })
 
 //Routes
-app.get('/users', (req , res)=>{
+app.get('/users', async (req , res)=>{
+    const allDbUsers = await User.find({});
     const html = `
        <ul>
-          ${users.map((user) => `<li>${user.first_name}</li>`).join('')}
+          ${allDbUsers.map((Users) => `<li>${Users.first_name} - ${Users.email}</li>`).join('')}
        </ul>
     `
     return res.send(html);
 });
 
-app.get('/api/users', (req , res)=>{
-    res.setHeader('My-Name' , 'Mohammed Asif') //Custom Header
+app.get('/api/users', async (req , res)=>{
+    const allDbUsers = await User.find({});
+    // res.setHeader('My-Name' , 'Mohammed Asif') //Custom Header
     // Always add X to custom headers
-    return res.json(users);
+    return res.json(allDbUsers);
 });
+
 
 // app
 // .route('/api/users/:id')
@@ -48,41 +87,63 @@ app.get('/api/users', (req , res)=>{
 //     return  res.json(user);
 // })
 // .post((req , res)=>{
-//     //TODO: Create new user
-//     return res.json({status: 'Pending'});
-// })
-// .patch((req , res)=>{
-//     //TODO: Edit the user with id
-//     return res.json({status: 'Pending'});
-// })
-// .delete((req , res)=>{
-//     //TODO: Delete the user with id
-//     return res.json({status: 'Pending'});
-// });
+//     const body = req.body;
+//     if (
+//         !body ||
+//         !body.first_name ||
+//         !body.last_name ||
+//         !body.email ||
+//         !body.job_title ||
+//         !body.gender
+//     ){
+//         return res.status(400).json({status: 'Error' , message: 'Please provide all the required fields'});
+//     }
 
-app.get('/api/users/:id', (req , res)=>{
-    const id = Number(req.params.id);
-    const user = users.find((user)=> user.id === id);
+// })
+
+app.get('/api/users/:id',async (req , res)=>{
+    const user = await User.findById(req.params.id);
     return  res.json(user);
+    
+    //manually
+    // const id = Number(req.params.id);
+    // const user = users.find((user)=> user.id === id);
+    // return  res.json(user);
 });
 
 
-app.post('/api/users', (req , res)=>{
+app.post('/api/users', async(req , res)=>{
     const body = req.body;
-    users.push({id: users.length + 1 ,...body });
-    fs.writeFileSync('./MOCK_DATA.json', JSON.stringify(users) , (err,data)=>{
-     return res.status(201).json({status: 'Success' , id: users.length + 1});
-    });
-   
-})
-app.patch('/api/users/:id', (req , res)=>{
-    //TODO: Edit the user with id
-    return res.json({status: 'Pending'});
-})
-app.delete('/api/users/:id', (req , res)=>{
-    //TODO: Delete the user with id
-    return res.json({status: 'Pending'});
-})
+    if (
+        !body ||
+        !body.first_name ||
+        !body.last_name ||
+        !body.email ||
+        !body.job_title ||
+        !body.gender
+    ){
+        return res.status(400).json({status: 'Error' , message: 'Please provide all the required fields'});
+    }
+    const result=  await User.create({
+        first_name: body.first_name,
+        last_name: body.last_name,
+        email: body.email,
+        job_title: body.job_title,
+        gender: body.gender
+    })
+    return res.status(201).json({ msg : 'Success'})
+ })
+
+app.patch('/api/users/:id',async (req , res)=>{
+    await User.findByIdAndUpdate(req.params.id , {last_name: 'Changed'});
+    return  res.json({status: 'Success'});
+ })
+
+app.delete('/api/users/:id',async (req , res)=>{
+    await User.findByIdAndDelete(req.params.id);
+    return  res.json({status: 'Success'});
+});
+  
 
 app.listen(port, ()=>{
     console.log(`Server is listening on port ${port}`);
