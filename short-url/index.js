@@ -1,5 +1,6 @@
 const express = require('express');
 const urlRoute = require('./routes/url');
+const userRoute = require('./routes/user');
 const path = require('path');
 const { connectDB } = require('./connection');
 
@@ -19,6 +20,7 @@ app.set('views', path.resolve('./views'));
 
 app.use(express.json());
 app.use("/url", urlRoute);
+app.use("/user", userRoute);
 
 app.get('/test',async (req,res)=>{
     const allUrls = await URL.find({});
